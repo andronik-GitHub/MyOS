@@ -10,6 +10,8 @@ struct process procs[PROCS_MAX];
 
 struct process *proc_a;
 struct process *proc_b;
+struct process *current_proc; // Currently running process
+struct process *idle_proc; // Idle process
 
 
 paddr_t alloc_pages(uint32_t n)
@@ -224,10 +226,28 @@ struct process *create_process(uint32_t pc)
     return proc;
 }
 
-void delay(void)
+
+void yield(void)
 {
-    for (int i = 0; i < 30000000; i++)
-        __asm__ __volatile__ ("nop"); // do nothing
+    // Search for a runnable process
+    struct process *next = idle_proc;
+    for (int i = 0; i < PROCS_MAX; i++)
+    {
+        struct process *proc = &procs[(current_proc->pid + i) % PROCS_MAX];
+        if (proc->state == PROC_RUNNABLE && proc->pid > 0)
+        {
+            next = proc;
+            break;
+        }
+    }
+
+    // If there's no runnable process other than te current one, return and continue processing
+    if (next == current_proc) return;
+
+    // Context switch
+    struct process *prev = current_proc;
+    current_proc = next;
+    switch_context(&prev->sp, &next->sp);
 }
 
 void proc_a_entry(void) 
@@ -236,8 +256,7 @@ void proc_a_entry(void)
     while (1)
     {
         putchar('A');
-        switch_context(&proc_a->sp, &proc_b->sp);
-        delay();
+        yield();
     }
 }
 void proc_b_entry(void) 
@@ -246,10 +265,11 @@ void proc_b_entry(void)
     while (1)
     {
         putchar('B');
-        switch_context(&proc_b->sp, &proc_a->sp);
-        delay();
+        yield();
     }
 }
+
+
 
 void kernel_main(void)
 {
@@ -260,9 +280,15 @@ void kernel_main(void)
     
 
 
+    idle_proc = create_process((uint32_t) NULL);
+    idle_proc->pid = 0;
+    current_proc = idle_proc;
+
     proc_a = create_process((uint32_t) proc_a_entry);
     proc_b = create_process((uint32_t) proc_b_entry);
-    proc_a_entry();
+
+    yield();
+    PANIC("switched to idle process");
 
 
     for (;;)
