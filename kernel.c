@@ -332,7 +332,7 @@ void kernel_main(void)
     proc_a = create_process((uint32_t) proc_a_entry);
     proc_b = create_process((uint32_t) proc_b_entry);
 
-    yield();
+    // yield();
     PANIC("switched to idle process");
 
 
