@@ -4,6 +4,12 @@
 #include "kernel.h"
 #include "common.h"
 
+
+void yield(void);
+
+
+
+
 extern char __bss[], __bss_end[], __stack_top[];
 extern char __free_ram[], __free_ram_end[];
 extern char __kernel_base[];
@@ -45,6 +51,13 @@ void putchar(char ch)
 {
     sbi_call(ch, 0, 0, 0, 0, 0, 0, 1);
 }
+
+long getchar(void)
+{
+    struct sbiret ret = sbi_call(0, 0, 0, 0, 0, 0, 0, 2);
+    return ret.error;
+}
+
 
 paddr_t alloc_pages(uint32_t n)
 {
@@ -153,6 +166,19 @@ void handle_syscall(struct trap_frame *f)
 {
     switch (f->a3)
     {
+        case SYS_GETCHAR:
+            while (1)
+            {
+                long ch = getchar();
+                if (ch >= 0)
+                {
+                    f->a0 = ch;
+                    break;
+                }
+
+                yield();
+            }
+            break;
         case SYS_PUTCHAR:
             putchar(f->a0);
             break;
