@@ -166,6 +166,13 @@ void handle_syscall(struct trap_frame *f)
 {
     switch (f->a3)
     {
+        case SYS_EXIT:
+        {
+            printf("process %d exited\n", current_proc->pid);
+            current_proc->state = PROC_EXITED;
+            yield();
+            PANIC("uncreachable");
+        }
         case SYS_GETCHAR:
             while (1)
             {

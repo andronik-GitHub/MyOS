@@ -16,13 +16,16 @@ typedef uint32_t vaddr_t;
 #define align_up(value, align)   __builtin_align_up(value, align)
 #define is_aligned(value, align) __builtin_is_aligned(value, align)
 #define offsetof(type, member)   __builtin_offsetof(type, member)
-#define va_list  __builtin_va_list // змінна-"курсор", що вміє ходити по додаткових аргументах
+#define va_list  __builtin_va_list  // змінна-"курсор", що вміє ходити по додаткових аргументах
 #define va_start __builtin_va_start // поставити курсор на перший аргумент після fmt
-#define va_end   __builtin_va_end // прочитати поточний аргумент як вказаний тип і пересунути курсор далі
-#define va_arg   __builtin_va_arg // завершити роботу з курсором (прибрати за собою)
+#define va_end   __builtin_va_end   // прочитати поточний аргумент як вказаний тип і пересунути курсор далі
+#define va_arg   __builtin_va_arg   // завершити роботу з курсором (прибрати за собою)
 #define PAGE_SIZE 4096
+
 #define SYS_PUTCHAR 1
 #define SYS_GETCHAR 2
+#define SYS_EXIT 3
+
 
 void *memset(void *buf, char c, size_t n);
 void *memcpy(void *dst, const void *src, size_t n);
